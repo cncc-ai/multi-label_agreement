@@ -1,0 +1,4 @@
+krippendorff==0.6.0
+nltk==3.7
+numpy==1.21.6
+
