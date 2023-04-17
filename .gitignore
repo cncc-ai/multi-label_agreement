@@ -3,3 +3,8 @@
 **/_pycache
 
 **/hi.py
+**/*.tmp
+
+**/logs/
+
+.env

@@ -1,8 +1,8 @@
 from types import prepare_class
 import krippendorff
 import numpy as np
-import util_common
 import unittest
+from util import util_common
 
 class TestUtilCommon(unittest.TestCase):
 
@@ -53,6 +53,28 @@ class TestUtilCommon(unittest.TestCase):
         ] 
         assert expt_result == util_common.build_value_counts(anno_data, k)
 
+    def test_convert_anno_data_to_fleiss(self):
+        anno_data = [
+            [[1], [3]],
+            [[1], [2]],
+            [[2], [2]],
+        ]
+        k = 3
+        expt_result = [
+            [1,0,1],
+            [1,1,0],
+            [0,2,0],
+        ]
+        assert expt_result == util_common.convert_anno_data_to_fleiss(anno_data, k)
+        
+        k = 5
+        expt_result = [
+            [1,0,1,0,0],
+            [1,1,0,0,0],
+            [0,2,0,0,0],
+        ]
+        assert expt_result == util_common.convert_anno_data_to_fleiss(anno_data, k)
+        
 
     def test_xxx(self):
         pass

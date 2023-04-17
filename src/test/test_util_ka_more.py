@@ -1,13 +1,13 @@
 
+from typing import List
+from util import util_common, util_ka_more
+from util.util_ka_more import alpha_with_dode
+
 import krippendorff
 import numpy as np
-import util_common, util_ka_more
 import unittest
-from   util_ka_more import alpha_with_dode
-from typing import List
 
 class TestUtilKaMore(unittest.TestCase):
-
 
     def __build_reliability_data(self, reliability_data_str):
         return [[np.nan if v == "*" else int(v) for v in coder.split()] for coder in reliability_data_str]
