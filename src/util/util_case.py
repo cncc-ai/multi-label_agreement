@@ -212,22 +212,22 @@ def common_post_process(logger, ac, df_result, total_simu_data, repeat, is_kf_al
         logger.add_df(F"simu_data_{ind_+1:02}", df_)
     logger.add_df("result", df_result)
 
-
-def proc_2coder_mul_class(logger, desc, anno_data:List[List[int]], 
+def proc_multi_coder_multi_class(logger, desc, anno_data:List[List[int]], 
         k:int, total_simu_data:int, repeat:int):
     df_result = pd.DataFrame()
  
-    assert 2 ==len(anno_data[0])
-    note_anno = f"k={k} total={len(anno_data)}"
+    n_coder = len(anno_data[0])
+    note_anno = f"n_coder={n_coder} k={k} total={len(anno_data)}"
     
-    fleiss_input = util_common.convert_anno_data_to_fleiss(anno_data, k)
-    fleiss_kappa, po, pe = util_fleiss_more.fleiss_kappa_return_more(fleiss_input, method="fleiss")
-    assert fleiss_kappa ==  util_common.cal_kappa(po, pe)
     logger.add_section_result()
-    logger.add_log(util_common.formated_result_4_kappa("fleiss kappa", fleiss_kappa, po, pe, note_anno))
-    df_result = _add_result_2_df(df_result, "fleiss kappa", ka=fleiss_kappa, po=po, pe=pe, type="anno",note=note_anno)
-
-    alpha_total = len(anno_data)*2
+    if (n_coder == 2):
+        fleiss_input = util_common.convert_anno_data_to_fleiss(anno_data, k)
+        fleiss_kappa, po, pe = util_fleiss_more.fleiss_kappa_return_more(fleiss_input, method="fleiss")
+        assert fleiss_kappa ==  util_common.cal_kappa(po, pe)
+        logger.add_log(util_common.formated_result_4_kappa("fleiss kappa", fleiss_kappa, po, pe, note_anno))
+        df_result = _add_result_2_df(df_result, "fleiss kappa", ka=fleiss_kappa, po=po, pe=pe, type="anno",note=note_anno)
+    
+    alpha_total = len(anno_data)*len(anno_data[0])
     ac = AgreeCalculator(logger, anno_data, k=k)
     kf_alpha, (d_o_sum, d_e_sum), (d_o_avg, d_e_avg)  = cal_krippendorff_alpla(ac)
     assert abs(kf_alpha  - (1 - d_o_sum / d_e_sum )) < 1e-5
@@ -239,34 +239,4 @@ def proc_2coder_mul_class(logger, desc, anno_data:List[List[int]],
 
     common_post_process(logger, ac, df_result, total_simu_data, repeat, is_kf_alpha_included=True)
 
-    # anno_mla_po, anno_mla_pos = ac.mla_po()
-    # df_anno = __build_data_df(anno_data, anno_mla_pos)
-    # df_simus = _simu_data(logger, ac, df_result, total_simu_data, repeat)
-
-    # # common proc: result_str
-    # for df_ in [df_anno]+df_simus:
-    #     df_['result_str'] = df_.iloc[:,1:-1].astype(str).agg(', '.join, axis=1)
-
-    # # add dfs to logger
-    # logger.add_df("anno_data", df_anno)
-    # for ind_, df_ in enumerate(df_simus):
-    #     logger.add_df(F"simu_data_{ind_+1:02}", df_)
-    # logger.add_df("result", df_result)
-
-
-    # __build_data_df(logger, desc, anno_data, simu_data, mla_po_details, mla_pe_details)
-
-    # df_result = pd.DataFrame()
-    # df_result['name'] = ['fleiss', 'kf_alpha', "mla"]
-    # df_result['kappa|alpha'] = [fleiss_kappa, kf_alpha, mla_kappa]
-    # df_result['p_o|1-do_avg'] = [po, 1-d_o_avg, mla_po]
-    # df_result['p_e|1-de_avg'] = [pe, 1-d_e_avg, mla_pe]
-    # df_result['note'] = [
-    #     f"anno_data_len:{len(anno_data)}", 
-    #     f"anno_data_len:{len(anno_data)}", 
-    #     f"simu_data_len:{simu_data_len}"]
-    # logger.add_df(f"{desc}_result", df_result)
-
-    # logger.add_log(f"fleiss  kappa:{fleiss_kappa:+.3f}\t   po:{po:.3f}\t   pe:{pe:.3f}")
-    # logger.add_log(f"kridrof alpha:{kf_alpha:+.3f}  1-do_avg:{1-d_o_avg:.3f}  1-de_avg:{1-d_e_avg:.3f}")
-    # logger.add_log(f"mla     kappa:{mla_kappa:+.3f}\t   po:{mla_po:.3f}\t   pe:{mla_pe:.3f}\tsimu_data_num:{total_simu_data}")   
+    
