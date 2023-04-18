@@ -1,6 +1,7 @@
 **/.vscode/
 **/.DS Store
 **/__pycache__/
+**/*.pyc
 
 **/hi.py
 **/*.tmp
