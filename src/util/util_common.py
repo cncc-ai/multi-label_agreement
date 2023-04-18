@@ -11,6 +11,7 @@ from sklearn.metrics import cohen_kappa_score
 from statsmodels.stats.inter_rater import fleiss_kappa
 
 import collections
+import json
 import numpy as np
 import numpy.typing as npt
 import os
@@ -164,6 +165,9 @@ class AgreeCalculator(object):
         kappa = cal_kappa(po, pe)
         return kappa, (po, mlas_po), (pe, mlas_pe), simu_data
 
+    def get_anno_data(self):
+        return self.anno_data
+
 class MlaLogger(object):
 
     def __init__(self, inst_id:str, desc="NoDesc", log_parent_dir:str=None):
@@ -187,10 +191,10 @@ class MlaLogger(object):
 
     @staticmethod
     def get_inst_id()->str:
-        return datetime.now().strftime("%m%d%H%M%S")
+        return datetime.now().strftime("%d%H%M%S")
 
     def __get_time(self)->str:
-        return f'{datetime.now().strftime("%m%d%H%M")}'
+        return f'{datetime.now().strftime("%m%d%H%M%S")}'
 
     def add_log(self, log:str):
         str_ = f'[{self.__get_time()}]  {log}'
@@ -199,6 +203,13 @@ class MlaLogger(object):
 
     def add_df(self, sheet_name:str, df:pd.DataFrame):
         self.sheet_df[sheet_name] = df
+
+    def __add_section(self, section_name):
+        self.add_log('*'*30 + "{:^15}".format(section_name) + '*'*30)
+    def add_section_input(self):
+        self.__add_section("input & proc")
+    def add_section_result(self):
+        self.__add_section("result")
 
     def save(self):
         files = self.log_files
@@ -225,6 +236,27 @@ def convert_anno_data_to_fleiss(anno_data:List[List[int]], k):
         assert 0 not in ct.keys()  # class range from 1 to k
         fleiss_input.append([ct[one] for one in range(1, k+1)])
     return fleiss_input
+
+
+def formated_result_4_kappa(name, kappa, po, pe, note):
+    fmt_str = "{:>15}:{:+.3f}  {:>10}:{:.3f}  {:>10}:{:.3f}  {}"
+    return fmt_str.format(name,  kappa, "po", po, "pe", pe, note)
+
+def formated_result_4_alpha(kf_alpha, do_avg, de_avg, note):
+    fmt_str = "{:>15}:{:+.3f}  {:>10}:{:.3f}  {:>10}:{:.3f}  {}"
+    return fmt_str.format("kf_alpha",  kf_alpha, "1-do_avg", 1-do_avg, "1-de_avg", 1-de_avg, note)
+
+def formated_str_4_var(var_name, val):
+    return  "{:>15}:{}".format(var_name,  val)
+
+def parse_2d_array(string):
+    try:
+        array = json.loads(string)
+        assert isinstance(array, list)
+        assert all(isinstance(row, list) for row in array)
+        return array
+    except (ValueError, AssertionError):
+        raise argparse.ArgumentTypeError('Invalid 2D array')
 
 if __name__ == "__main__":
     print("D")
