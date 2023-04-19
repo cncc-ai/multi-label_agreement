@@ -1,5 +1,6 @@
 **/.vscode/
 **/.DS Store
+**/.DS_Store
 **/__pycache__/
 **/*.pyc
 
@@ -8,4 +9,4 @@
 
 **/logs/
 
-.env
+**/.env
