@@ -60,23 +60,7 @@ class TestUtilCase(unittest.TestCase):
         assert {'1':0.1, '2':0.5, '3':0.05, '4':0.35} == util_common.stat_prob(coder_3)
         assert np.array(anno_data).shape == (total_anno, 3, 1)
  
-    def test_cal_cohen_kappa(self):
-        # from https://zhuanlan.zhihu.com/p/547781481
-        tp = 20
-        tn = 15 
-        fp = 5 
-        fn = 10
-
-        inst_id = MlaLogger.get_inst_id()
-        logger = MlaLogger(inst_id, "test_cal_cohen_kappa")
-
-        anno_data = util_case.gen_anno_data_4_cohen(
-            logger, num_tp=tp, num_tn=tn, num_fp=fp, num_fn=fn)
-        kappa, po,pe,dict_ = util_case.cal_cohen_kappa(logger, anno_data, k=2)
-        assert dict_ == {'tp':20, 'tn':15,'fp':5, 'fn':10}
-        assert 0.7 == po
-        assert 0.5 == pe
-        self.assertAlmostEqual(0.4, kappa, places=5)
+    
 
 if __name__ == "__main__":
     unittest.main()       

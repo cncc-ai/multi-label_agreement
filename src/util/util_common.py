@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from collections import Counter
 from datetime import datetime
+
 from typing import List
-from pandas.core.indexes.base import Index
 from sklearn.utils import resample
 from sklearn.metrics import cohen_kappa_score
 from statsmodels.stats.inter_rater import fleiss_kappa
+from util import util_ka_more
 
+import argparse
 import collections
 import json
 import numpy as np
@@ -17,7 +19,6 @@ import numpy.typing as npt
 import os
 import pandas as pd
 import statistics
-from util import util_ka_more
 
 def get_expr_of_arr(arr):
     return ",".join([str(one) for one in sorted(arr)])
@@ -257,6 +258,81 @@ def parse_2d_array(string):
         return array
     except (ValueError, AssertionError):
         raise argparse.ArgumentTypeError('Invalid 2D array')
+
+def cal_cohen_kappa(logger:MlaLogger, anno_data:List[int], k):
+    def build_key(c1_, c2_):
+        return f"{c1_}_{c2_}"
+    
+    c1 = [one[0][0] for one in anno_data]
+    c2 = [one[1][0] for one in anno_data]
+    
+    ct = Counter()
+    for c1_,c2_ in zip(c1,c2):
+        ct.update({
+            build_key(c1_, c2_): 1
+        })
+    
+    matx = np.full((k,k), -1)                   
+    for row in range(k):
+        for col in range(k):
+            matx[row][col] = ct[build_key(row, col)]            
+
+    tp = matx[0][0]
+    tn = matx[1][1]
+    fp = matx[0][1]
+    fn = matx[1][0]
+    
+    N = len(anno_data)
+    po = (tp+tn)/N
+    pe = (tp+fp)/N * (tp+fn)/N + (fn+tn)/N*(fp+tn)/N
+    kappa = cal_kappa(po,pe)
+    
+    logger.add_log(f" N={N}")
+    logger.add_log(f"ct={ct}")
+    logger.add_log(f"matx\n {matx}")
+    logger.add_log(f"po:    {po}")
+    logger.add_log(f"pe:    {pe}")
+    logger.add_log(f"kappa  {kappa}")
+    logger.add_log(f"cohen_kappa_score  {cohen_kappa_score(c1, c2)}  {cohen_kappa_score(c2, c1)}")
+
+    assert abs(cohen_kappa_score(c1, c2) - kappa) < 1e-5
+    return kappa, po, pe, {"tp":tp, "tn":tn,"fp":fp,"fn":fn}
+
+def cal_krippendorff_alpla(ac:AgreeCalculator):
+    '''return kf_alpha, (d_o_sum, d_e_sum), (d_o_avg, d_e_avg) 
+    '''
+    return ac.krippendorff_alpla()
+ 
+def cal_mla_alpha(ac:AgreeCalculator, simu_data_len:int):
+    '''return mla_kappa, (mla_po, mla_po_details), (mla_pe, mla_pe_details), simu_data 
+    '''
+    return  ac.mla_kappa(simu_data_len = simu_data_len)
+
+def cal_po_by_aug_ka(anno_data:List[List[int]])->float:
+    assert len(anno_data) == 2
+    set_0 = set(anno_data[0])
+    set_1 = set(anno_data[1])
+    instersect_labels = set_0 & set_1
+    
+    kappa = 0
+    for label_ in instersect_labels:
+        kappa += 1/len(anno_data[0])*1/len(anno_data[1])
+    return kappa
+
+def cal_po_by_f1(anno_data:List[List[int]])->float:
+    assert len(anno_data) == 2
+    set_0 = set(anno_data[0])
+    set_1 = set(anno_data[1])
+    instersect_labels = set_0 & set_1
+    
+    r = len(instersect_labels) / len(set_0)
+    p = len(instersect_labels) / len(set_1)
+
+    if (p+r) == 0:
+        assert p==0 and r==0
+        return 0
+    f1 = 2*p*r/(p+r)        
+    return f1
 
 if __name__ == "__main__":
     print("D")

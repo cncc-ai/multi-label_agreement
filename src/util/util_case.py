@@ -1,5 +1,8 @@
 
 from collections import Counter
+from nltk import agreement
+from nltk.metrics.agreement import AnnotationTask
+from nltk.metrics.distance import jaccard_distance, masi_distance
 from statistics import mean
 from statsmodels.stats.inter_rater import fleiss_kappa, cohens_kappa
 from typing import List
@@ -12,44 +15,6 @@ import pandas as pd
 import numpy as np
 
 
-def cal_cohen_kappa(logger:MlaLogger, anno_data:List[int], k):
-    def build_key(c1_, c2_):
-        return f"{c1_}_{c2_}"
-    
-    c1 = [one[0][0] for one in anno_data]
-    c2 = [one[1][0] for one in anno_data]
-    
-    ct = Counter()
-    for c1_,c2_ in zip(c1,c2):
-        ct.update({
-            build_key(c1_, c2_): 1
-        })
-    
-    matx = np.full((k,k), -1)                   
-    for row in range(k):
-        for col in range(k):
-            matx[row][col] = ct[build_key(row, col)]            
-
-    tp = matx[0][0]
-    tn = matx[1][1]
-    fp = matx[0][1]
-    fn = matx[1][0]
-    
-    N = len(anno_data)
-    po = (tp+tn)/N
-    pe = (tp+fp)/N * (tp+fn)/N + (fn+tn)/N*(fp+tn)/N
-    kappa = util_common.cal_kappa(po,pe)
-    
-    logger.add_log(f" N={N}")
-    logger.add_log(f"ct={ct}")
-    logger.add_log(f"matx\n {matx}")
-    logger.add_log(f"po:    {po}")
-    logger.add_log(f"pe:    {pe}")
-    logger.add_log(f"kappa  {kappa}")
-    logger.add_log(f"cohen_kappa_score  {cohen_kappa_score(c1, c2)}  {cohen_kappa_score(c2, c1)}")
-
-    assert abs(cohen_kappa_score(c1, c2) - kappa) < 1e-5
-    return kappa, po, pe, {"tp":tp, "tn":tn,"fp":fp,"fn":fn}
 
 def _build_data_df(data:List[List[int]], mla_pos:List[float]):
     item_num  = len(data)
@@ -109,25 +74,25 @@ def proc_2coder_2class(logger:MlaLogger, desc, k,anno_data, total_simu_data, rep
     assert 2 ==len(anno_data[0])
     df_result = pd.DataFrame()
     
-    kappa,po,pe,note_anno = cal_cohen_kappa(logger, anno_data, k)
+    kappa,po,pe,note_anno = util_common.cal_cohen_kappa(logger, anno_data, k)
     assert kappa==util_common.cal_kappa(po, pe)
     logger.add_section_result()
     logger.add_log(util_common.formated_result_4_kappa("cohen kappa", kappa, po, pe, note_anno))
     df_result = _add_result_2_df(df_result, "cohen kappa", ka=kappa, po=po, pe=pe, type="anno",note=note_anno)
 
-    ac = AgreeCalculator(logger, anno_data, k=k, mla_only=True)
-    common_post_process(logger, ac, df_result, total_simu_data, repeat, is_kf_alpha_included=False)
+    ac = AgreeCalculator(logger, anno_data, k=k, mla_only=False)
+    alpha_total = len(anno_data)*len(anno_data[0])
+    kf_alpha, (d_o_sum, d_e_sum), (d_o_avg, d_e_avg)  = util_common.cal_krippendorff_alpla(ac)
+    assert abs(kf_alpha  - (1 - d_o_sum / d_e_sum )) < 1e-5
+    assert abs(kf_alpha  - (1 - d_o_avg / d_e_avg )) < 1e-5
+    assert d_o_avg == d_o_sum / alpha_total
+    assert d_e_avg == d_e_sum / alpha_total
+    logger.add_log(util_common.formated_result_4_alpha(kf_alpha, d_o_avg, d_e_avg, note_anno))
+    df_result = _add_result_2_df(df_result, "kf alpha", ka=kf_alpha, po=1-d_o_avg, pe=1-d_e_avg, type="anno",note=note_anno)
+
+    common_post_process(logger, ac, df_result, total_simu_data, repeat, is_kf_alpha_included=True)
 
 
-def cal_krippendorff_alpla(ac:AgreeCalculator):
-    '''return kf_alpha, (d_o_sum, d_e_sum), (d_o_avg, d_e_avg) 
-    '''
-    return ac.krippendorff_alpla()
- 
-def cal_mla_alpla(ac:AgreeCalculator, simu_data_len:int):
-    '''return mla_kappa, (mla_po, mla_po_details), (mla_pe, mla_pe_details), simu_data 
-    '''
-    return  ac.mla_kappa(simu_data_len = simu_data_len)
 
 def proc_ka_multiclass(logger, anno_data:List[List[int]], k:int, simu_data_len:int):
     tot = len(anno_data)*len(anno_data[0])
@@ -229,7 +194,7 @@ def proc_multi_coder_multi_class(logger, desc, anno_data:List[List[int]],
     
     alpha_total = len(anno_data)*len(anno_data[0])
     ac = AgreeCalculator(logger, anno_data, k=k)
-    kf_alpha, (d_o_sum, d_e_sum), (d_o_avg, d_e_avg)  = cal_krippendorff_alpla(ac)
+    kf_alpha, (d_o_sum, d_e_sum), (d_o_avg, d_e_avg)  = util_common.cal_krippendorff_alpla(ac)
     assert abs(kf_alpha  - (1 - d_o_sum / d_e_sum )) < 1e-5
     assert abs(kf_alpha  - (1 - d_o_avg / d_e_avg )) < 1e-5
     assert d_o_avg == d_o_sum / alpha_total
@@ -239,4 +204,24 @@ def proc_multi_coder_multi_class(logger, desc, anno_data:List[List[int]],
 
     common_post_process(logger, ac, df_result, total_simu_data, repeat, is_kf_alpha_included=True)
 
-    
+def proc_po_in_2coder_multi_class(logger:MlaLogger, desc, one_data):
+    logger.add_section_result()
+    df = pd.DataFrame()
+    for index_, one_data in enumerate(one_data):
+        set0 = set(one_data[0])
+        set1 = set(one_data[1])       
+        mla,_= util_common.cal_mla_of_one_item(one_data)
+        
+        df = df.append({
+            'item': index_+1,
+            'data': str(one_data),
+            'aug_kappa':           util_common.cal_po_by_aug_ka(one_data),
+            'f1':                  util_common.cal_po_by_f1(one_data),
+            "1-jaccard_distance" : 1-jaccard_distance(set0, set1),
+            "1-masi_distance" :    1-masi_distance(set0, set1),
+            'mla': mla
+        }, ignore_index=True)
+        df = df [['item', 'data', 'aug_kappa', 'f1', '1-jaccard_distance', "1-masi_distance", 'mla']]
+        
+    logger.add_log('\n'+str(df))
+    logger.add_df("result",df)

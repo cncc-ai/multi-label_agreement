@@ -8,5 +8,10 @@ python proc_2coder_multi_class.py -k 5 -ps [[0.1,0.2,0.3,0.15,0.25],[0.2,0.3,0.1
 
 ## multi-coder multi-class
 python proc_multi_coder_multi_class.py -k 5 -ps [[0.1,0.2,0.3,0.15,0.25],[0.2,0.3,0.15,0.25,0.1],[0.13,0.37,0.15,0.25,0.1],[0.20,0.2,0.2,0.2,0.2]] -ta 600 -ts 6000 -r 5
+
+## po_in_2coder_multi_label
+python proc_po_in_2coder_multi_label.py
+
 ## unit test
 python -m unittest
+python -m test.test_util_case

@@ -2,7 +2,8 @@ from types import prepare_class
 import krippendorff
 import numpy as np
 import unittest
-from util import util_common
+from util import util_common, util_case
+from util.util_common import MlaLogger
 
 class TestUtilCommon(unittest.TestCase):
 
@@ -75,9 +76,50 @@ class TestUtilCommon(unittest.TestCase):
         ]
         assert expt_result == util_common.convert_anno_data_to_fleiss(anno_data, k)
         
+    def test_cal_cohen_kappa(self):
+            # from https://zhuanlan.zhihu.com/p/547781481
+            tp = 20
+            tn = 15 
+            fp = 5 
+            fn = 10
 
-    def test_xxx(self):
-        pass
+            inst_id = MlaLogger.get_inst_id()
+            logger = MlaLogger(inst_id, "test_cal_cohen_kappa")
+
+            anno_data = util_case.gen_anno_data_4_cohen(
+                logger, num_tp=tp, num_tn=tn, num_fp=fp, num_fn=fn)
+            kappa, po,pe,dict_ = util_common.cal_cohen_kappa(logger, anno_data, k=2)
+            assert dict_ == {'tp':20, 'tn':15,'fp':5, 'fn':10}
+            assert 0.7 == po
+            assert 0.5 == pe
+            self.assertAlmostEqual(0.4, kappa, places=5)
+
+    def test_cal_po_by_aug_ka(self):
+        # from Establishing Annotation Quality in Multi-Label Annotations
+        test_data = [
+            [0.5,   [[1],   [1,2]]],
+            [0.25,  [[1,2], [2,3]]],
+            [0.5,   [[1,2], [1, 2]]]
+        ]
+        for each_ in test_data:
+            expt_rest = each_[0]
+            anno_data = each_[1]
+            actu_rest = util_common.cal_po_by_aug_ka(anno_data)
+            assert expt_rest == actu_rest, F"{expt_rest}, {actu_rest}"
+
+    def test_cal_po_by_f1(self):
+        # from Establishing Annotation Quality in Multi-Label Annotations
+        test_data = [
+            [0.67,  [[1],    [1,2]]],
+            [0.50,  [[1,2],  [2,3]]],
+            [1.0,   [[1,2],  [1, 2]]],
+            [0,     [[1,2,3],[4]]]
+        ]
+        for each_ in test_data:
+            expt_rest = each_[0]
+            anno_data = each_[1]
+            actu_rest = util_common.cal_po_by_f1(anno_data)
+            self.assertAlmostEqual(expt_rest,actu_rest, places=2)
         
 if __name__ == "__main__":
     unittest.main()       
