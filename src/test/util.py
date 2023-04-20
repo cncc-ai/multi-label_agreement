@@ -15,6 +15,21 @@ def mla_score(labels_for_one_record:List[List[int]])->float:
 
 def avg_mla_score(labels_for_all_records:List[List[List[int]]])->float:
 	return np.mean([mla_score(labels_for_one_record) for labels_for_one_record in labels_for_all_records])
+
+def f1_score(coder1:List[int], coder2:List[int])->float:
+	coder1, coder2 = set(coder1), set(coder2)
+	intersection_len = len(coder1 & coder2)
+	p = intersection_len / len(coder1)
+	r = intersection_len / len(coder2)
+	if (p + r) == 0:
+		return 0
+	else:
+		return 2 * p * r / (p + r)
+	
+def jaccard(list1, list2):
+  intersection = len(list(set(list1).intersection(list2)))
+  union = (len(list1) + len(list2)) - intersection
+  return float(intersection) / union
           
 if __name__ == '__main__':
 	anno_data = [[[9, 7, 29], [9, 7, 19], [9, 7]], [[9, 7, 29], [9, 7, 19], [9, 7]]]

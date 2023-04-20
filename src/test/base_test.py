@@ -55,7 +55,7 @@ class Base:
 
         def _df_to_labels(self, df:pd.DataFrame)->List[List[int]]:
             data_array = df[[f'coder_{i:02}' for i in range(1, self.coder_num + 1)]].values
-            return data_array.reshape((len(data_array), 2, 1)).tolist()
+            return data_array.reshape((len(data_array), self.coder_num, 1)).tolist()
 
         def test_po(self):
             #### anno_data for coders, format: List[List[List[int]]]
