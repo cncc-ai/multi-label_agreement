@@ -17,6 +17,7 @@ import json
 import numpy as np
 import numpy.typing as npt
 import os
+import random
 import pandas as pd
 import statistics
 
@@ -75,10 +76,84 @@ class SimuDataBuilder(object):
             
         simu_col_data = resample(all_data, replace=False)
         assert len(simu_col_data) == tot_number
-        # pdb.set_trace()
         assert stat_prob(col_init_data) == stat_prob(simu_col_data) 
         return simu_col_data
     
+class MultiLabelDataBuilder(object):
+    def __init__(self, tot_data, k, probs:List):
+        '''probs:[one_coder_prob] 
+        one_coder_prob: format [(probs of single class), double-class probs, 3-class probs]
+            e.g. [(.3,.3,.3),.25,.05]
+        '''
+        self.tot_data = tot_data
+        self.probs = probs
+        self.k = k
+        self.max_sample_fail_num = 100
+
+    def _gen_data(self, current_data:List[int], num_of_label_in_anno:int, gen_data_count:int):
+        
+        gen_data = []
+        while (len(gen_data) < gen_data_count):
+            gen_data.append(self._gen_one_data(current_data, num_of_label_in_anno))
+        assert len(gen_data) ==gen_data_count
+        return gen_data
+
+    def _gen_one_data(self, current_data:List[int], num_of_label_in_anno:int):
+        current_data_types = set(current_data)
+        assert len(current_data_types) >= num_of_label_in_anno, \
+            f"num_of_label_in_anno={num_of_label_in_anno}, current_data_types={current_data_types}"
+
+        selected_labels = []
+
+        fail_num = 0
+        while (len(selected_labels)<num_of_label_in_anno and fail_num < self.max_sample_fail_num):
+            sample_ = random.choice(current_data)
+            if sample_ in selected_labels:
+                fail_num += 1
+                continue
+            selected_labels.append(sample_)
+            current_data.remove(sample_)
+
+        assert fail_num < self.max_sample_fail_num, \
+            f"fail_num:{fail_num}, num_of_label_in_anno:{num_of_label_in_anno}"
+        return sorted(selected_labels)
+
+    def _build_4_coder(self, one_coder_prob:List):
+        tot_data = self.tot_data
+
+        prob_class_1 = one_coder_prob[0]  # List
+        assert self.k >= len(prob_class_1)
+        prob_class_2 = one_coder_prob[1]  # float
+        prob_class_3 = one_coder_prob[2]  # float
+
+        current_data = []
+        for num_, prob_ in enumerate(prob_class_1):
+            current_data.extend([num_+1]*(int)(tot_data*prob_))
+        assert self.tot_data == len(current_data)
+
+        coder_data = []
+        for prob_, num_label_in_anno_ in zip([prob_class_3, prob_class_2], [3,2]):
+            gen_data_count = (int)(tot_data*prob_)
+            data_3 = self._gen_data(current_data, num_label_in_anno_, gen_data_count)
+            coder_data.extend(data_3)
+
+        # coder_data.extend(current_data)
+        while (len(coder_data)<self.tot_data):
+            sample_ = random.choice(current_data)
+            coder_data.append([sample_])
+
+        assert len(coder_data) == self.tot_data
+        return resample(coder_data, replace=False)
+
+    def build_data(self):
+        data_coders = []
+        coder_num = len(self.probs)
+        for coder_prob in self.probs:
+            data_coders.append(self._build_4_coder(coder_prob))
+
+        return np.array(data_coders).T.reshape(len(data_coders[0]), coder_num, )
+        # return data_coders
+
 
 def cal_kappa(po, pe):
     return (po-pe)/(1-pe)
@@ -105,7 +180,6 @@ def build_value_counts(anno_data:List[List[int]], k:int)->List[int]:
         else:
             val_data.append([ct[one] for one in range(1,k+1)])
         
-
     return val_data
 
 def cal_mla_of_one_item(one_item_anno:list):

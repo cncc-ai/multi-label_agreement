@@ -14,7 +14,7 @@ import argparse
 
 def proc_2coder_mul_class(args):
     
-    k = args.category_count
+    k = args.class_num
     probs = args.probs
     total_anno_data = args.total_anno_data
     total_simu_data = args.total_simu_data
@@ -42,11 +42,11 @@ def proc_2coder_mul_class(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-k', "--category_count", help="category count of classes",
+    parser.add_argument('-k', "--class_num", help="class number",
         required=False, type=int, default=4) 
-    parser.add_argument('-ps', "--probs", help="category probabilities of each coder",
+    parser.add_argument('-ps', "--probs", help="class probabilities of each coder",
         required=False, type=util_common.parse_2d_array, default='[[0.1, 0.5, 0.3, 0.10], [0.3, 0.5, 0.10, 0.10]]')         
-    parser.add_argument('-ta', "--total_anno_data", help="total annotation data",
+    parser.add_argument('-ta', "--total_anno_data", help="total annotated data",
         required=False, type=int, default=800)   
     parser.add_argument('-ts', "--total_simu_data", help="total simulated data",
         required=False, type=int, default=3200)        
