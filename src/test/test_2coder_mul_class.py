@@ -22,7 +22,7 @@ class Test2CoderMulClass(Base.BaseTest):
                                   .reshape(len(anno_data_all_coders), self.coder_num) \
                                   .transpose() #(coder, subject)
         alpha_score = kd.alpha(anno_data_all_coders, level_of_measurement='nominal')
-        self.assertAlmostEqual(alpha_score, self.result['kappa | kf_alpha']['fleiss kappa'], places=common_config.float_equal_digits)
+        self.assertAlmostEqual(alpha_score, self.result['kappa | kf_alpha']['kf alpha'], places=common_config.float_equal_digits)
 
 
 if __name__ == "__main__":
