@@ -1,12 +1,12 @@
 import unittest
 from sklearn.metrics import cohen_kappa_score
 
-from test.config import confi_2coder_2class, common_config
+from test.config import config_2coder_2class, common_config
 from test.base_test import Base
 
 class Test2Coder2Class(Base.BaseTest):
     
-    result_file_prefix = confi_2coder_2class.result_file_prefix
+    result_file_prefix = config_2coder_2class.result_file_prefix
 
     def test_cohen(self):
         rater1 = self.sheets['anno_data']['coder_01'].values
