@@ -10,6 +10,10 @@ class TestMulCoderMulClass(Base.BaseTest):
     
     result_file_prefix = config_mul_coder_mul_class.result_file_prefix
 
+    @classmethod
+    def tearDownClass(self) -> None:
+        print(f'{self.result_file_prefix} completed')
+
     def test_kf_alpha(self):
         anno_data_all_coders = self._df_to_labels(self.sheets['anno_data'])
         anno_data_all_coders = np.array(anno_data_all_coders) \

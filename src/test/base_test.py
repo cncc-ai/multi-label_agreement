@@ -18,11 +18,12 @@ class Base:
         def setUpClass(self):
             # super().setUpClass()
             # find result file folder
-            res_folder = glob.glob(f'{common_config.log_path}/{self.result_file_prefix}*')
+            res_folder = max(glob.glob(f'{common_config.log_path}/{self.result_file_prefix}*'), key=os.path.getctime)
             # find the latest excel file
-            latest_file = max(glob.glob(f'{res_folder[0]}/*.xlsx'), key=os.path.getctime)
+            latest_file = max(glob.glob(f'{res_folder}/*.xlsx'), key=os.path.getctime)
             
             self.sheets = pd.read_excel(latest_file, sheet_name=None)
+
             self.result = self.sheets['result']
             self.result.set_index('name', inplace=True)
 
@@ -54,8 +55,15 @@ class Base:
                                             msg=f'coder{c:02}: distribution of {v} is not equal for anno_data and simu_data_{i:02}')              
 
         def _df_to_labels(self, df:pd.DataFrame)->List[List[int]]:
-            data_array = df[[f'coder_{i:02}' for i in range(1, self.coder_num + 1)]].values
-            return data_array.reshape((len(data_array), self.coder_num, 1)).tolist()
+            if 'multi_label' in self.result_file_prefix:
+                tmp_df = pd.DataFrame({})
+                for i in range(1, self.coder_num + 1):
+                    col_name = f'coder_{i:02}'
+                    tmp_df[col_name] = df[col_name].apply(lambda s: [int(i) for i in s.split(',')])
+                return tmp_df.values
+            else:
+                data_array = df[[f'coder_{i:02}' for i in range(1, self.coder_num + 1)]].values
+                return data_array.reshape((len(data_array), self.coder_num, 1)).tolist()
 
         def test_po(self):
             #### anno_data for coders, format: List[List[List[int]]]

@@ -15,9 +15,9 @@ class TestPO2CoderMultiLabel(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # find result file folder
-        res_folder = glob.glob(f'{common_config.log_path}/{self.result_file_prefix}*')
+        res_folder = max(glob.glob(f'{common_config.log_path}/{self.result_file_prefix}*'), key=os.path.getctime)
         # find the latest excel file
-        latest_file = max(glob.glob(f'{res_folder[0]}/*.xlsx'), key=os.path.getctime)
+        latest_file = max(glob.glob(f'{res_folder}/*.xlsx'), key=os.path.getctime)
         
         self.result = pd.read_excel(latest_file, sheet_name='result')
         self.result.loc[:, 'data'] = self.result['data'].apply(literal_eval)
