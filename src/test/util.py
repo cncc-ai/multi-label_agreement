@@ -1,4 +1,6 @@
 from typing import List
+import glob
+import os
 import numpy as np
 
 def _count_label(label:int, labels_for_one_record:List[List[int]])->float:
@@ -31,6 +33,19 @@ def jaccard(list1, list2):
   union = (len(list1) + len(list2)) - intersection
   return float(intersection) / union
           
+def get_latest_file(file_prefix:str)->str:
+	cur_file_path = os.path.dirname(__file__)
+	log_path = os.path.abspath(os.path.join(cur_file_path, "../../logs/"))
+
+	folders = glob.glob(f'{log_path}/{file_prefix}*')
+	assert len(folders)>0, F"No result can be found in {f'{log_path}/{file_prefix}*'}. Please run 'python proc_{file_prefix}.py' first."
+	res_folder = max(folders, key=os.path.getctime)
+
+	files = glob.glob(f'{res_folder}/m*.xlsx')
+	assert len(files)>0, F"No result can be found in {f'{res_folder}'}. Please run 'python proc_{file_prefix}.py' first."
+	latest_file = max(files, key=os.path.getctime)
+	return latest_file
+
 if __name__ == '__main__':
 	anno_data = [[[9, 7, 29], [9, 7, 19], [9, 7]], [[9, 7, 29], [9, 7, 19], [9, 7]]]
 	mla_score = avg_mla_score(anno_data)

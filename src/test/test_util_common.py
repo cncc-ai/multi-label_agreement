@@ -2,6 +2,8 @@ from types import prepare_class
 import krippendorff
 import numpy as np
 import unittest
+
+from scipy.sparse import data
 from util import util_common, util_case
 from util.util_common import MlaLogger
 
@@ -121,5 +123,75 @@ class TestUtilCommon(unittest.TestCase):
             actu_rest = util_common.cal_po_by_f1(anno_data)
             self.assertAlmostEqual(expt_rest,actu_rest, places=2)
         
+
+    def test_change_anno_data_2_data_coders(self):
+        np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+        anno_data = [
+            [[1],[1],[1]],
+            [[1],[1],[3]],
+            [[1,2,3,4],[1,3,2,4],[1,4,2,3]],
+            [[1,2,3,4],[1,3,2,4],[1,4,2,3,5]],
+        ]
+        data_coder_1 = [[1],[1],[1,2,3,4],[1,2,3,4]]
+        data_coder_2 = [[1],[1],[1,3,2,4],[1,3,2,4]]
+        data_coder_3 = [[1],[3],[1,4,2,3],[1,4,2,3,5]]
+        expt_data_coders = [data_coder_1,data_coder_2,data_coder_3]
+        
+        data_coders = util_common.change_anno_data_2_data_coders(anno_data)
+
+        for expt_data_, actu_data_ in zip(expt_data_coders, data_coders):
+            assert expt_data_ == actu_data_
+        
+    def test_change_data_coders_2_anno_data(self):
+        np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+        expt_anno_data = [
+            [[1],[1],[1]],
+            [[1],[1],[3]],
+            [[1,2,3,4],[1,3,2,4],[1,4,2,3]],
+            [[1,2,3,4],[1,3,2,4],[1,4,2,3,5]],
+        ]
+        data_coder_1 = [[1],[1],[1,2,3,4],[1,2,3,4]]
+        data_coder_2 = [[1],[1],[1,3,2,4],[1,3,2,4]]
+        data_coder_3 = [[1],[3],[1,4,2,3],[1,4,2,3,5]]
+        data_coders = [data_coder_1,data_coder_2,data_coder_3]
+        
+        actu_anno_data = util_common.change_data_coders_2_anno_data(data_coders)
+        assert expt_anno_data == actu_anno_data       
+        
+
+    def test_find_same_data_positions(self):
+        # data_coder_1 = [[1],[1],[1,2,3,4],[1,2,3,4]]
+        # data_coder_2 = [[1],[1],[1,3,2,4],[1,3,2,4]]
+        # data_coder_3 = [[1],[3],[1,4,2,3],[1,4,2,3,5]]
+        # data_coders = [data_coder_1,data_coder_2,data_coder_3]
+        anno_data = [
+            [[1],[1],[1]],
+            [[1],[1],[3]],
+            [[1,2,3,4],[1,3,2,4],[1,4,2,3]],
+            [[1,2,3,4],[1,3,2,4],[1,4,2,3,5]],
+        ]        
+        assert [0, 2] == util_common.find_same_data_rows(anno_data)
+        
+
+    def test_swap_data_in_place(self):
+        anno_data = [
+            [[1],        [1],      [1]],
+            [[1],        [3],      [5]],
+            [[1,2,3,4],  [1,3,20,4],[1,4,2,3]],
+            [[1,2,3,4,5],[1,2,4],  [1,4,2,3,5]],
+        ]
+        expt_ = [
+            [[1],[1],[1]],
+            [[1],        [1,3,20,4],[5]],
+            [[1,2,3,4],  [3],      [1,4,2,3]],
+            [[1,2,3,4,5],[1,2,4],  [1,4,2,3,5]],
+        ]
+        actu_ = util_common.swap_anno_data_in_place(
+            anno_data, row_index1=1, row_index2=2, col_index=1)
+        assert expt_== actu_
+        assert expt_== anno_data
+        assert actu_== anno_data
+        
+
 if __name__ == "__main__":
     unittest.main()       

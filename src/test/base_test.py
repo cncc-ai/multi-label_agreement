@@ -6,7 +6,7 @@ import glob
 import os
 
 from test.config import common_config
-from test.util import avg_mla_score
+from test.util import avg_mla_score, get_latest_file
 
 class Base:
 
@@ -16,11 +16,13 @@ class Base:
         ### Read anno_data, simu_data, result from excel file
         @classmethod
         def setUpClass(self):
-            # super().setUpClass()
             # find result file folder
-            res_folder = max(glob.glob(f'{common_config.log_path}/{self.result_file_prefix}*'), key=os.path.getctime)
+        
+            # res_folder = max(glob.glob(f'{common_config.log_path}/{self.result_file_prefix}*'), key=os.path.getctime)
+            # res_folder = max(glob.glob(f'{log_path}/{self.result_file_prefix}*'), key=os.path.getctime)
+            
             # find the latest excel file
-            latest_file = max(glob.glob(f'{res_folder}/*.xlsx'), key=os.path.getctime)
+            latest_file = get_latest_file(self.result_file_prefix)
             
             self.sheets = pd.read_excel(latest_file, sheet_name=None)
 

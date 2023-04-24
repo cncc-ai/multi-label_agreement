@@ -12,9 +12,9 @@ class Test2Coder2Class(Base.BaseTest):
         rater1 = self.sheets['anno_data']['coder_01'].values
         rater2 = self.sheets['anno_data']['coder_02'].values
         kappa_score = cohen_kappa_score(rater1, rater2)
-        self.assertAlmostEqual(kappa_score, self.result['kappa']['cohen'], places=common_config.float_equal_digits)
+        # self.assertAlmostEqual(kappa_score, self.result['kappa']['cohen'], places=common_config.float_equal_digits)
+        self.assertAlmostEqual(kappa_score, self.result.iloc[0,0], places=common_config.float_equal_digits)
 
-  
 
 if __name__ == "__main__":
     unittest.main()       

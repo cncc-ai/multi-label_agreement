@@ -1,9 +1,3 @@
-'''
-1) 2-coders 2-classes (cohen)
-2) 2-coders mul-classes (ka, fleiss)
-3) mul-coders mul-classes (k)
-4) mul-coders mul-labels
-'''
 
 from util import util_common
 from util.util_common import MlaLogger
@@ -28,11 +22,11 @@ def proc():
         [[1,2,3,4], [1,2,3,4]],    
     ]
 
-    desc = f"po_in_2coder_multi_class"
+    desc = f"po_in_2coder_multi_label"
     inst_id = MlaLogger.get_inst_id()
     logger = MlaLogger(inst_id, desc=desc)
     
-    util_case.proc_po_in_2coder_multi_class(logger, desc, anno_data)
+    util_case.proc_po_in_2coder_multi_label(logger, desc, anno_data)
 
     logger.save()
     

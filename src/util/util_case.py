@@ -9,22 +9,11 @@ from typing import List
 from sklearn.metrics import cohen_kappa_score
 from sklearn.utils import resample
 from util import util_common, util_ka_more, util_fleiss_more
-from util.util_common import AgreeCalculator, SimuDataBuilder, MlaLogger
+from util.util_common import AgreeCalculator, SimuDataBuilder, MlaLogger, _build_data_df
 
 import pandas as pd
 import numpy as np
 
-
-
-def _build_data_df(data:List[List[int]], mla_pos:List[float]):
-    item_num  = len(data)
-    coder_num = len(data[0])
-    df = pd.DataFrame()
-    df['item'] = list(range(1, 1+item_num))
-    for i in range(coder_num):
-        df[f'coder_{i+1:02}'] = [util_common.get_expr_of_arr(row[i]) for row in data]
-    df['mla_po'] = mla_pos
-    return df
 
 def gen_anno_data_4_cohen(logger, num_tp:int, num_tn, num_fp, num_fn)->List[List[int]]:
     d_00 = [[0], [0]]
@@ -37,7 +26,7 @@ def gen_anno_data_4_cohen(logger, num_tp:int, num_tn, num_fp, num_fn)->List[List
     logger.add_log(F"gen_anno_data_4_cohen: tot_num:{total}   num_tp:{num_tp}    num_tn:{num_tn}    num_fp:{num_fp}  num_fn:{num_fn}")
     
     all_data = []
-    for d_, num_ in zip([d_00, d_11, d_01, d_10], [num_tp, num_tn, num_fp, num_fn]):
+    for d_, num_ in zip([d_00, d_11, d_10, d_01], [num_tp, num_tn, num_fp, num_fn]):
         all_data.extend([d_]*(num_))
         
     all_data = resample(all_data, replace=False)
@@ -45,12 +34,10 @@ def gen_anno_data_4_cohen(logger, num_tp:int, num_tn, num_fp, num_fn)->List[List
     return all_data
 
 def _gen_coder_data_4_mul_class(tot_num, k, class_probs_of_coder:List[float]):
-    assert abs(1-sum(class_probs_of_coder)) < 1e-5
+    assert abs(1-sum(class_probs_of_coder)) < 1e-5, F"sum of class_probs_of_coder {class_probs_of_coder}, but it is {sum(class_probs_of_coder)}"
     coder_data  = []
     coder_class_nums = [(int)(tot_num*p_) for p_ in class_probs_of_coder]
     for cls_, num_ in zip(range(1,k+1), coder_class_nums):
-        # coder_data.extend([cls_]*(num_))
-        # coder_data.extend(cls_*num_)
         for n_ in range(num_):
             coder_data.append([cls_])
 
@@ -66,7 +53,7 @@ def gen_anno_data_4_mul_class(tot_num, k, probs:List[List[float]])->List[List[fl
     coder_data_all = []
     for row_ in probs:
         coder_data_all.append(_gen_coder_data_4_mul_class(tot_num,k,row_))
-    rest_ = np.array(coder_data_all).T.reshape(tot_num, -1, 1)
+    rest_ = np.array(coder_data_all, dtype=object).T.reshape(tot_num, -1, 1)
     return rest_
 
 def proc_2coder_2class(logger:MlaLogger, desc, k,anno_data, total_simu_data, repeat):
@@ -92,7 +79,7 @@ def proc_2coder_2class(logger:MlaLogger, desc, k,anno_data, total_simu_data, rep
 
     common_post_process(logger, ac, df_result, total_simu_data, repeat, is_kf_alpha_included=True)
 
-def proc_ka_multiclass(logger, anno_data:List[List[int]], k:int, simu_data_len:int):
+def proc_ka_multiclass(logger, anno_data:List[List[List[int]]], k:int, simu_data_len:int):
     tot = len(anno_data)*len(anno_data[0])
 
     ac = AgreeCalculator(logger, anno_data, k=k)
@@ -131,6 +118,7 @@ def _add_result_2_df(df_, name, ka, po, pe, type, note):
 
 def _simu_data(logger, ac, df_result, tot_simu_data, repeat):
     df_simus = []
+    existing_num = len(df_result)
     for r in range(repeat):
         mla_kappa, (mla_po, mla_pos), (mla_pe, mla_pes), simu_data = \
                 ac.mla_kappa(tot_simu_data)
@@ -145,7 +133,7 @@ def _simu_data(logger, ac, df_result, tot_simu_data, repeat):
             type="simu",note= f"total_simu_data_len:{tot_simu_data}")
     
     # select specific rows
-    mean_vals = df_result.loc[1:].mean()
+    mean_vals = df_result.loc[existing_num:].mean()
     mean_ka = mean_vals['kappa']
     mean_po = mean_vals['p_o']
     mean_pe = mean_vals['p_e']
@@ -170,7 +158,7 @@ def common_post_process(logger, ac, df_result, total_simu_data, repeat, is_kf_al
 
     # common proc: result_str
     for df_ in [df_anno]+df_simus:
-        df_['result_str'] = df_.iloc[:,1:-1].astype(str).agg(', '.join, axis=1)
+        df_['result_str'] = df_.iloc[:,1:-1].astype(str).agg('|'.join, axis=1)
 
     # add dfs to logger
     logger.add_df("anno_data", df_anno)
@@ -178,7 +166,8 @@ def common_post_process(logger, ac, df_result, total_simu_data, repeat, is_kf_al
         logger.add_df(F"simu_data_{ind_+1:02}", df_)
     logger.add_df("result", df_result)
 
-def proc_multi_coder_multi_class(logger, desc, anno_data:List[List[int]], 
+
+def proc_multi_coder_multi_class(logger, desc, anno_data:List[List[List[int]]], 
         k:int, total_simu_data:int, repeat:int):
     df_result = pd.DataFrame()
  
@@ -205,35 +194,16 @@ def proc_multi_coder_multi_class(logger, desc, anno_data:List[List[int]],
 
     common_post_process(logger, ac, df_result, total_simu_data, repeat, is_kf_alpha_included=True)
 
-def proc_multi_coder_multi_label(logger, desc, anno_data:List[List[int]], 
+
+def proc_multi_coder_multi_label(logger, desc, anno_data:List[List[List[int]]], 
         k:int, total_simu_data:int, repeat:int):
     df_result = pd.DataFrame()
- 
-    n_coder = len(anno_data[0])
-    note_anno = f"n_coder={n_coder} k={k} total={len(anno_data)}"
-    
     logger.add_section_result()
-    # if (n_coder == 2):
-    #     fleiss_input = util_common.convert_anno_data_to_fleiss(anno_data, k)
-    #     fleiss_kappa, po, pe = util_fleiss_more.fleiss_kappa_return_more(fleiss_input, method="fleiss")
-    #     assert fleiss_kappa ==  util_common.cal_kappa(po, pe)
-    #     logger.add_log(util_common.formated_result_4_kappa("fleiss kappa", fleiss_kappa, po, pe, note_anno))
-    #     df_result = _add_result_2_df(df_result, "fleiss kappa", ka=fleiss_kappa, po=po, pe=pe, type="anno",note=note_anno)
-    
-    # alpha_total = len(anno_data)*len(anno_data[0])
     ac = AgreeCalculator(logger, anno_data, k=k, mla_only=True)
-    # kf_alpha, (d_o_sum, d_e_sum), (d_o_avg, d_e_avg)  = util_common.cal_krippendorff_alpla(ac)
-    # assert abs(kf_alpha  - (1 - d_o_sum / d_e_sum )) < 1e-5
-    # assert abs(kf_alpha  - (1 - d_o_avg / d_e_avg )) < 1e-5
-    # assert d_o_avg == d_o_sum / alpha_total
-    # assert d_e_avg == d_e_sum / alpha_total
-    # logger.add_log(util_common.formated_result_4_alpha(kf_alpha, d_o_avg, d_e_avg, note_anno))
-    # df_result = _add_result_2_df(df_result, "kf alpha", ka=kf_alpha, po=1-d_o_avg, pe=1-d_e_avg, type="anno",note=note_anno)
-
-    common_post_process(logger, ac, df_result, total_simu_data, repeat, is_kf_alpha_included=True)
+    common_post_process(logger, ac, df_result, total_simu_data, repeat, is_kf_alpha_included=False)
 
 
-def proc_po_in_2coder_multi_class(logger:MlaLogger, desc, one_data):
+def proc_po_in_2coder_multi_label(logger:MlaLogger, desc, one_data):
     logger.add_section_result()
     df = pd.DataFrame()
     for index_, one_data in enumerate(one_data):

@@ -1,16 +1,9 @@
-'''
-1) 2-coders 2-classes (cohen)
-2) 2-coders mul-classes (ka, fleiss)
-3) mul-coders mul-classes (k)
-4) mul-coders mul-labels
-'''
 
 from util.util_common import MlaLogger
 from util import util_case, util_common
 
 import argparse
 
-# def proc_2coder_2class(tp,tn,fp,fn,total_simu_data, repeat_times):
 def proc_2coder_2class(args):
     tp = args.tp_num
     tn = args.tn_num
@@ -28,10 +21,10 @@ def proc_2coder_2class(args):
     logger.add_log(F"2coder_2class input: {str(args)}")
     for var_ in ["tp", "tn","fp","fn","total_simu_data", "repeat_times", "k"]:
         logger.add_log(util_common.formated_str_4_var(var_, eval(var_)))
-    # ogger.add_log(F"coder_2class input:k={k},tp={tp},tn={tn},fp={fp},fn={fn},total_simu_data={total_simu_data},repeat={repeat_times}")
-    
+   
     anno_data = util_case.gen_anno_data_4_cohen(
         logger, num_tp=tp, num_tn=tn, num_fp=fp, num_fn=fn)
+    util_common.check_anno_simu_num(len(anno_data), total_simu_data)
     
     util_case.proc_2coder_2class(
         logger, desc, k=k, anno_data=anno_data, 
@@ -41,17 +34,17 @@ def proc_2coder_2class(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-tp', "--tp_num", help="tp number",
+    parser.add_argument('-tp', "--tp_num", help="tp number (default:%(default)s)",
         required=False, type=int, default=20)
-    parser.add_argument('-tn', "--tn_num", help="tn number",
+    parser.add_argument('-tn', "--tn_num", help="tn number (default:%(default)s)",
         required=False, type=int, default=5)        
-    parser.add_argument('-fp', "--fp_num", help="fp number",
+    parser.add_argument('-fp', "--fp_num", help="fp number (default:%(default)s)",
         required=False, type=int, default=10)
-    parser.add_argument('-fn', "--fn_num", help="fn number",
+    parser.add_argument('-fn', "--fn_num", help="fn number (default:%(default)s)",
         required=False, type=int, default=15)
-    parser.add_argument('-ts', "--total_simu_data", help="total simulated data",
+    parser.add_argument('-ts', "--total_simu_data", help="total simulated data (default:%(default)s)",
         required=False, type=int, default=1000)
-    parser.add_argument('-r', "--repeat", help="repeat times of simulation",
+    parser.add_argument('-r', "--repeat", help="repeat times of simulation (default:%(default)s)",
         required=False, type=int, default=3)
     
     args = parser.parse_args()
