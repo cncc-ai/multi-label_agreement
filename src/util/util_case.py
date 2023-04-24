@@ -203,10 +203,10 @@ def proc_multi_coder_multi_label(logger, desc, anno_data:List[List[List[int]]],
     common_post_process(logger, ac, df_result, total_simu_data, repeat, is_kf_alpha_included=False)
 
 
-def proc_po_in_2coder_multi_label(logger:MlaLogger, desc, one_data):
+def proc_po_in_2coder_multi_label(logger:MlaLogger, desc, all_data):
     logger.add_section_result()
     df = pd.DataFrame()
-    for index_, one_data in enumerate(one_data):
+    for index_, one_data in enumerate(all_data):
         set0 = set(one_data[0])
         set1 = set(one_data[1])       
         mla,_= util_common.cal_mla_of_one_item(one_data)
