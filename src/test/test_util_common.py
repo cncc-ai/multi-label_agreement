@@ -80,18 +80,18 @@ class TestUtilCommon(unittest.TestCase):
         
     def test_cal_cohen_kappa(self):
             # from https://zhuanlan.zhihu.com/p/547781481
-            tp = 20
-            tn = 15 
-            fp = 5 
-            fn = 10
+            yy = 20
+            nn = 15 
+            yn = 5 
+            ny = 10
 
             inst_id = MlaLogger.get_inst_id()
             logger = MlaLogger(inst_id, "test_cal_cohen_kappa")
 
             anno_data = util_case.gen_anno_data_4_cohen(
-                logger, num_tp=tp, num_tn=tn, num_fp=fp, num_fn=fn)
+                logger, num_yy=yy, num_nn=nn, num_yn=yn, num_ny=ny)
             kappa, po,pe,dict_ = util_common.cal_cohen_kappa(logger, anno_data, k=2)
-            assert dict_ == {'tp':20, 'tn':15,'fp':5, 'fn':10}
+            assert dict_ == {'y_y':20, 'n_n':15,'n_y':10, 'y_n':5}
             assert 0.7 == po
             assert 0.5 == pe
             self.assertAlmostEqual(0.4, kappa, places=5)
@@ -192,6 +192,27 @@ class TestUtilCommon(unittest.TestCase):
         assert expt_== anno_data
         assert actu_== anno_data
         
+
+    def test_change_to_joint_proportion(self):
+        in_probs_1 = [[0.3,  0.5,   0.1,  0.1], 
+                      [0.05, 0.5,   0.4,  0.05], 
+                      [0.25, 0.25,  0.25, 0.25]]
+        expt_1 =     [[0.2,  1.25/3,0.25, 0.4/3]] * 3
+        k_1 = 3
+
+        in_probs_2 = [[0.3,    0.2,  0.1,   0.15, 0.25], 
+                      [0.05,   0.1,  0.15,  0.25, 0.45]]
+        expt_2 =     [[0.35/2, 0.3/2,0.25/2,0.2,  .35]] * 2
+        k_2 = 2
+
+        all_in = [in_probs_1, in_probs_2]
+        all_expt = [expt_1, expt_2]
+        all_k = [k_1, k_2]
+        for in_, k_, expt_ in zip(all_in, all_k, all_expt):
+            self.assertEqual(k_, len(in_))
+            actu_ = util_common.change_to_joint_proportion(in_, k_)
+            np.testing.assert_almost_equal(expt_, actu_, decimal=4)
+
 
 if __name__ == "__main__":
     unittest.main()       

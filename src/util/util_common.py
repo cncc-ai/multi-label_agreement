@@ -437,7 +437,8 @@ class SameDataAdjuster(object):
     def check_4_porb_change(self, data, desc):
         coder_prob_ = self.get_coder_probs(data) 
         for index_, (prob_init_, prob_samed_) in enumerate(zip(self.coder_prob_init, coder_prob_)):
-            self.logger.add_log(F" {desc}:{prob_init_==prob_samed_}  before:{sorted(prob_init_.items())}, samed:{sorted(prob_samed_.items())}")   
+            # self.logger.add_log(F" {desc}:{prob_init_==prob_samed_}  before:{sorted(prob_init_.items())}, samed:{sorted(prob_samed_.items())}")   
+            # self.logger.add_log(F" {desc}:{prob_init_==prob_samed_}")   
             if (prob_init_ != prob_samed_):
                 return False
         return True
@@ -676,6 +677,13 @@ def formated_result_4_alpha(kf_alpha, do_avg, de_avg, note):
 def formated_str_4_var(var_name, val):
     return  "{:>15}:{}".format(var_name,  val)
 
+def change_to_joint_proportion(probs, coder_num:int):
+    assert len(probs) == coder_num
+    jp = np.mean(np.array(probs), axis = 0)
+    jp_probs = [jp] * coder_num
+    assert np.array(probs).shape == np.array(jp_probs).shape
+    return jp_probs
+
 def parse_2d_array(string):
     try:
         array = json.loads(string)
@@ -703,25 +711,25 @@ def cal_cohen_kappa(logger:MlaLogger, anno_data:List[List[int]], k):
         for col in range(k):
             matx[row][col] = ct[build_key(row, col)]            
 
-    tp = matx[0][0]
-    tn = matx[1][1]
-    fp = matx[1][0]
-    fn = matx[0][1]
+    yy = matx[0][0]
+    nn = matx[1][1]
+    yn = matx[0][1]
+    ny = matx[1][0]
     
     item_num = len(anno_data)
-    po = (tp+tn)/item_num
-    pe = (tp+fp)/item_num * (tp+fn)/item_num + (fn+tn)/item_num*(fp+tn)/item_num
+    po = (yy+nn)/item_num
+    pe = (yy+ny)/item_num * (yy+yn)/item_num + (yn+nn)/item_num*(ny+nn)/item_num
     kappa = cal_kappa(po,pe)
     
     logger.add_log(f"ct={ct}")
-    logger.add_log(f"confusion matrix\n {matx}")
+    logger.add_log(f"contingency table\n {matx}")
     logger.add_log(f"po:    {po}")
     logger.add_log(f"pe:    {pe}")
     logger.add_log(f"kappa  {kappa}")
     logger.add_log(f"cohen_kappa_score  {cohen_kappa_score(c1, c2)}  {cohen_kappa_score(c2, c1)}")
 
     assert abs(cohen_kappa_score(c1, c2) - kappa) < 1e-5
-    return kappa, po, pe, {"tp":tp, "tn":tn,"fp":fp,"fn":fn}
+    return kappa, po, pe, {"y_y":yy, "n_n":nn,"y_n":yn,"n_y":ny}
 
 def cal_krippendorff_alpla(ac:AgreeCalculator):
     '''return kf_alpha, (d_o_sum, d_e_sum), (d_o_avg, d_e_avg) 

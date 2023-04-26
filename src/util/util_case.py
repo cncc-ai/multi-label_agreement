@@ -15,18 +15,18 @@ import pandas as pd
 import numpy as np
 
 
-def gen_anno_data_4_cohen(logger, num_tp:int, num_tn, num_fp, num_fn)->List[List[int]]:
+def gen_anno_data_4_cohen(logger, num_yy:int, num_nn, num_yn, num_ny)->List[List[int]]:
     d_00 = [[0], [0]]
     d_01 = [[0], [1]]
     d_11 = [[1], [1]]
     d_10 = [[1], [0]]
-    nums = [num_tp, num_tn, num_fp, num_fn]
+    nums = [num_yy, num_nn, num_yn, num_ny]
     total = sum(nums)
 
-    logger.add_log(F"gen_anno_data_4_cohen: tot_num:{total}   num_tp:{num_tp}    num_tn:{num_tn}    num_fp:{num_fp}  num_fn:{num_fn}")
+    logger.add_log(F"gen_anno_data_4_cohen: tot_num:{total}   num_yy:{num_yy}    num_nn:{num_nn}    num_yn:{num_yn}  num_ny:{num_ny}")
     
     all_data = []
-    for d_, num_ in zip([d_00, d_11, d_10, d_01], [num_tp, num_tn, num_fp, num_fn]):
+    for d_, num_ in zip([d_00, d_11, d_01, d_10], [num_yy, num_nn, num_yn, num_ny]):
         all_data.extend([d_]*(num_))
         
     all_data = resample(all_data, replace=False)
@@ -36,7 +36,7 @@ def gen_anno_data_4_cohen(logger, num_tp:int, num_tn, num_fp, num_fn)->List[List
 def _gen_coder_data_4_mul_class(tot_num, k, class_probs_of_coder:List[float]):
     assert abs(1-sum(class_probs_of_coder)) < 1e-5, F"sum of class_probs_of_coder {class_probs_of_coder}, but it is {sum(class_probs_of_coder)}"
     coder_data  = []
-    coder_class_nums = [(int)(tot_num*p_) for p_ in class_probs_of_coder]
+    coder_class_nums = [round(tot_num*p_) for p_ in class_probs_of_coder]
     for cls_, num_ in zip(range(1,k+1), coder_class_nums):
         for n_ in range(num_):
             coder_data.append([cls_])
