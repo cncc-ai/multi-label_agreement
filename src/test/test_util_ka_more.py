@@ -1,7 +1,6 @@
 
 from typing import List
 from util import util_common, util_ka_more
-from util.util_ka_more import alpha_with_dode
 
 import krippendorff
 import numpy as np
@@ -107,29 +106,34 @@ class TestUtilKaMore(unittest.TestCase):
 
 
     def __samples_from_paper(self, reliability_data_str:set, level_of_measurement:str, 
-        expt_alpha:float, expt_do:float=None, expt_de:float=None):
-        '''
-        samples from paper Computing Krippendorff 's Alpha-Reliability
-        '''
-        # reliability_data_str = (
-        #     "0 1 0 0 0 0 0 0 1 0",  # coder A
-        #     "1 1 1 0 0 1 0 0 0 0",  # coder B
-        # )
+        expt_alpha:float, expt_do:float=None, expt_de:float=None, expt_po:float=None, expt_pe:float=None):
+
         reliability_data = self.__build_reliability_data(reliability_data_str)
+        total_data = np.count_nonzero(~np.isnan(reliability_data))
+
         alpha, d_o_sum, d_e_sum = util_ka_more.alpha_with_dode(
             reliability_data= reliability_data, level_of_measurement=level_of_measurement)
         k_alpha = krippendorff.alpha(
             reliability_data= reliability_data, level_of_measurement=level_of_measurement)
         assert k_alpha == alpha
-        assert k_alpha == 1-d_o_sum/d_e_sum
+        assert k_alpha == 1-d_o_sum/d_e_sum        
+        
         self.assertAlmostEqual (expt_alpha, k_alpha, places=3)
-        # if expt_do:
-        #     self.assertAlmostEqual(expt_do, d_o_sum, places=4)
-        # if expt_de:
-        #     self.assertAlmostEqual(expt_de, d_e_sum, places=4)
+        if expt_do:
+            self.assertAlmostEqual(expt_do / expt_de, d_o_sum / d_e_sum, delta=1e-5)
+            # self.assertAlmostEqual(expt_do, d_o_sum, delta=1.e-3)
+            # self.assertAlmostEqual(expt_de, d_e_sum, delta=1.e-3)
+        if expt_po:
+            self.assertAlmostEqual((1-expt_po)/(1-expt_pe), d_o_sum/d_e_sum, delta=1.0e-5)
+            self.assertAlmostEqual(1 - expt_po, d_o_sum/total_data, delta=0.005)
+            self.assertAlmostEqual(1 - expt_pe, d_e_sum/total_data, delta=0.02)
 
 
     def test_samples_from_paper(self):
+        '''
+        samples from paper Computing Krippendorff 's Alpha-Reliability
+        '''
+
         # A. Binary or dichotomous data, two observers, no missing data
         reliability_data_str = (
             "0 1 0 0 0 0 0 0 1 0",  # coder A
@@ -144,7 +148,9 @@ class TestUtilKaMore(unittest.TestCase):
             "2 1 2 2 2 3 3 3 5 4 4 4",  # coder B
         )
         self.__samples_from_paper(reliability_data_str, "nominal", 
-            expt_alpha=0.692, expt_do=None, expt_de=None)
+            expt_alpha=0.692, 
+            expt_po=((24-1)*(2+4+6+4+2)) / (23*24), 
+            expt_pe=(4*(4-1)+6*(6-1)+ 6*(6-1)+ 6*(6-1)+ 2*(2-1)) / (23*24))
 
         # C. Nominal data, any number of observers, missing data
         reliability_data_str = (
@@ -154,7 +160,9 @@ class TestUtilKaMore(unittest.TestCase):
             "1 2 3 3 2 4 4 1 2 5 1 *",  # coder D
         )
         self.__samples_from_paper(reliability_data_str, "nominal", 
-            expt_alpha=0.743, expt_do=None, expt_de=None)            
+            expt_alpha=0.743, 
+            expt_po=((40-1)*(7+10+8+4+3))/(40*39),
+            expt_pe=(9*(9-1) +13*(13 -1) +10*(10-1)+ 5*(5-1) + 3*(3-1)) /(40*39))
             
         
 if __name__ == "__main__":

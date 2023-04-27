@@ -4,6 +4,8 @@ import numpy as np
 import unittest
 
 from scipy.sparse import data
+from sklearn.metrics import confusion_matrix
+from statsmodels.stats.inter_rater import cohens_kappa
 from util import util_common, util_case
 from util.util_common import MlaLogger
 
@@ -78,23 +80,60 @@ class TestUtilCommon(unittest.TestCase):
         ]
         assert expt_result == util_common.convert_anno_data_to_fleiss(anno_data, k)
         
-    def test_cal_cohen_kappa(self):
-            # from https://zhuanlan.zhihu.com/p/547781481
-            yy = 20
-            nn = 15 
-            yn = 5 
-            ny = 10
+        
+    def _cal_cohen_by_confusion_maxtrx(self, anno_data):
+        assert np.array(anno_data).shape[1:] == (2,1)  # 2 coder
+        data_coders = util_common.change_anno_data_2_data_coders(anno_data)
+        cm = confusion_matrix(data_coders[0], data_coders[1])
+        po = np.sum(np.diag(cm)) / np.sum(cm)
+        marginals = np.sum(cm, axis = 0) * np.sum(cm, axis = 1)
+        pe = np.sum(marginals) / (np.sum(cm)**2)
+        kappa = util_common.cal_kappa(po, pe)
+        return kappa, po, pe
 
-            inst_id = MlaLogger.get_inst_id()
-            logger = MlaLogger(inst_id, "test_cal_cohen_kappa")
+    def _test_cal_cohen_kappa(self, logger, input_data, expt_result):
+        places_th = 4
 
-            anno_data = util_case.gen_anno_data_4_cohen(
+        (yy, nn, yn, ny) = input_data
+        (kappa_expt, po_expt, pe_expt) = expt_result
+
+        anno_data = util_case.gen_anno_data_4_cohen(
                 logger, num_yy=yy, num_nn=nn, num_yn=yn, num_ny=ny)
-            kappa, po,pe,dict_ = util_common.cal_cohen_kappa(logger, anno_data, k=2)
-            assert dict_ == {'y_y':20, 'n_n':15,'n_y':10, 'y_n':5}
-            assert 0.7 == po
-            assert 0.5 == pe
-            self.assertAlmostEqual(0.4, kappa, places=5)
+        kappa, po,pe,dict_ = util_common.cal_cohen_kappa(logger, anno_data, k=2)
+        self.assertAlmostEqual(kappa_expt, kappa, places=places_th)
+        self.assertAlmostEqual(po_expt, po, places=places_th)
+        self.assertAlmostEqual(pe_expt, pe, places=places_th)
+
+        k2,po2,pe2 = self._cal_cohen_by_confusion_maxtrx(anno_data)
+        assert kappa == k2
+        assert po == po2
+        assert pe == pe2
+
+
+    def test_cal_cohen_kappa(self):
+        inst_id = MlaLogger.get_inst_id()
+        logger = MlaLogger(inst_id, "test_cal_cohen_kappa")
+
+        # from https://en.wikipedia.org/wiki/Cohen%27s_kappa
+        yy,nn,yn,ny = 20,15,5,10
+        input_data1 = [yy, nn, yn ,ny]
+        expt_result1 = [0.4, 0.7, 0.5]
+        
+        yy,nn,yn,ny = 45,15,15,25
+        input_data2 = [yy, nn, yn ,ny]
+        expt_result2 = [0.1304, 0.60, 0.54]
+
+        yy,nn,yn,ny = 25,35,35,5
+        input_data3 = [yy, nn, yn ,ny]
+        expt_result3 = [0.2593, 0.60, 0.46]
+        
+        inputs = [input_data1, input_data2, input_data3]
+        expt_results = [expt_result1, expt_result2, expt_result3]
+        # expt_dicts = [expt_dict1, expt_dict2]
+
+        for input_, expt_result_ in zip(inputs, expt_results):
+            self._test_cal_cohen_kappa(logger, input_,expt_result_)
+
 
     def test_cal_po_by_aug_ka(self):
         # from Establishing Annotation Quality in Multi-Label Annotations
