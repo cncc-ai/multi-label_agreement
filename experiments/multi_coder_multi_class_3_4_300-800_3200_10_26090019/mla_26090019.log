@@ -1,0 +1,24 @@
+[0426090019]  ****************************** input & proc  ******************************
+[0426090019]  multi_coder_multi_class input: Namespace(class_num=4, probs=[[0.1, 0.5, 0.3, 0.1], [0.3, 0.5, 0.1, 0.1], [0.2, 0.1, 0.15, 0.55]], repeat=10, samed_num=300, total_anno_data=800, total_simu_data=3200)
+[0426090019]          n_coder:3
+[0426090019]                k:4
+[0426090019]            probs:[[0.1, 0.5, 0.3, 0.1], [0.3, 0.5, 0.1, 0.1], [0.2, 0.1, 0.15, 0.55]]
+[0426090019]        samed_num:300
+[0426090019]  total_anno_data:800
+[0426090019]  total_simu_data:3200
+[0426090019]     repeat_times:10
+[0426090028]  Samed OK. from 28 to 300
+[0426090028]  samed data num: set:300 | actual:300
+[0426090028]  ******************************    result     ******************************
+[0426090028]         kf_alpha:+0.295    1-do_avg:0.486    1-de_avg:0.270  n_coder=3 k=4 total=800
+[0426090028]     mla_kappa_01:+0.339          po:0.486          pe:0.222  tot_simu_data:3200
+[0426090029]     mla_kappa_02:+0.343          po:0.486          pe:0.217  tot_simu_data:3200
+[0426090030]     mla_kappa_03:+0.343          po:0.486          pe:0.218  tot_simu_data:3200
+[0426090031]     mla_kappa_04:+0.335          po:0.486          pe:0.227  tot_simu_data:3200
+[0426090031]     mla_kappa_05:+0.340          po:0.486          pe:0.221  tot_simu_data:3200
+[0426090032]     mla_kappa_06:+0.341          po:0.486          pe:0.220  tot_simu_data:3200
+[0426090033]     mla_kappa_07:+0.342          po:0.486          pe:0.219  tot_simu_data:3200
+[0426090033]     mla_kappa_08:+0.334          po:0.486          pe:0.228  tot_simu_data:3200
+[0426090034]     mla_kappa_09:+0.337          po:0.486          pe:0.225  tot_simu_data:3200
+[0426090035]     mla_kappa_10:+0.338          po:0.486          pe:0.224  tot_simu_data:3200
+[0426090035]        mla_kappa:+0.339          po:0.486          pe:0.222  tot_simu_data:3200 repeat:10

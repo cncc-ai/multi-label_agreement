@@ -1,0 +1,23 @@
+[0426082738]  ****************************** input & proc  ******************************
+[0426082738]  2coder_mul_class input: Namespace(class_num=4, probs=[[0.1, 0.5, 0.3, 0.1], [0.3, 0.5, 0.1, 0.1]], repeat=10, samed_num=-1, total_anno_data=800, total_simu_data=4000)
+[0426082738]                k:4
+[0426082738]            probs:[[0.1, 0.5, 0.3, 0.1], [0.3, 0.5, 0.1, 0.1]]
+[0426082738]        samed_num:-1
+[0426082738]  total_anno_data:800
+[0426082738]  total_simu_data:4000
+[0426082738]     repeat_times:10
+[0426082738]  samed data num: set:-1 | actual:254
+[0426082738]  ******************************    result     ******************************
+[0426082738]     fleiss kappa:-0.034          po:0.318          pe:0.340  n_coder=2 k=4 total=800
+[0426082738]         kf_alpha:-0.033    1-do_avg:0.318    1-de_avg:0.340  n_coder=2 k=4 total=800
+[0426082739]     mla_kappa_01:+0.003          po:0.318          pe:0.316  tot_simu_data:4000
+[0426082740]     mla_kappa_02:-0.000          po:0.318          pe:0.318  tot_simu_data:4000
+[0426082741]     mla_kappa_03:-0.013          po:0.318          pe:0.326  tot_simu_data:4000
+[0426082742]     mla_kappa_04:-0.010          po:0.318          pe:0.325  tot_simu_data:4000
+[0426082742]     mla_kappa_05:-0.013          po:0.318          pe:0.326  tot_simu_data:4000
+[0426082743]     mla_kappa_06:-0.013          po:0.318          pe:0.326  tot_simu_data:4000
+[0426082744]     mla_kappa_07:-0.014          po:0.318          pe:0.327  tot_simu_data:4000
+[0426082744]     mla_kappa_08:-0.007          po:0.318          pe:0.323  tot_simu_data:4000
+[0426082745]     mla_kappa_09:-0.001          po:0.318          pe:0.319  tot_simu_data:4000
+[0426082746]     mla_kappa_10:-0.007          po:0.318          pe:0.322  tot_simu_data:4000
+[0426082746]        mla_kappa:-0.008          po:0.317          pe:0.323  tot_simu_data:4000 repeat:10

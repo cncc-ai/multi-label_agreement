@@ -1,0 +1,27 @@
+[0508105611]  ****************************** input & proc  ******************************
+[0508105611]  multi_coder_multi_class input: Namespace(class_num=4, coder_num=3, probs=[[[0.1, 0.2, 0.3, 0.4], 0.2, 0.04], [[0.3, 0.1, 0.45, 0.15], 0.3, 0.05], [[0.3, 0.1, 0.45, 0.15], 0.3, 0.01]], repeat=5, samed_num=50, total_anno_data=1000, total_simu_data=4000)
+[0508105611]          n_coder:3
+[0508105611]                k:4
+[0508105611]            probs:[[[0.1, 0.2, 0.3, 0.4], 0.2, 0.04], [[0.3, 0.1, 0.45, 0.15], 0.3, 0.05], [[0.3, 0.1, 0.45, 0.15], 0.3, 0.01]]
+[0508105611]        samed_num:50
+[0508105611]  total_anno_data:1000
+[0508105611]  total_simu_data:4000
+[0508105611]     repeat_times:5
+[0508105612]  one_coder_prob: [[0.1, 0.2, 0.3, 0.4], 0.2, 0.04]. class_n_nums: [134, 262, 398, 486]
+[0508105612]  standardized: [1.0, 2.0, 3.0, 4.0] [1.0, 1.955, 2.97, 3.627]
+[0508105612]  max single class standardized-prob diff:0.093
+[0508105612]  one_coder_prob: [[0.3, 0.1, 0.45, 0.15], 0.3, 0.05]. class_n_nums: [435, 133, 630, 202]
+[0508105612]  standardized: [3.0, 1.0, 4.5, 1.5] [3.271, 1.0, 4.737, 1.519]
+[0508105612]  max single class standardized-prob diff:0.090
+[0508105612]  one_coder_prob: [[0.3, 0.1, 0.45, 0.15], 0.3, 0.01]. class_n_nums: [403, 135, 585, 197]
+[0508105612]  standardized: [3.0, 1.0, 4.5, 1.5] [2.985, 1.0, 4.333, 1.459]
+[0508105612]  max single class standardized-prob diff:0.037
+[0508105612]  Samed OK. from 36 to 50
+[0508105612]  samed data num: set:50 | actual:50
+[0508105612]  ******************************    result     ******************************
+[0508105612]     mla_kappa_01:+0.007          po:0.371          pe:0.366  tot_simu_data:4000
+[0508105613]     mla_kappa_02:+0.002          po:0.371          pe:0.370  tot_simu_data:4000
+[0508105613]     mla_kappa_03:+0.002          po:0.371          pe:0.370  tot_simu_data:4000
+[0508105614]     mla_kappa_04:+0.004          po:0.371          pe:0.368  tot_simu_data:4000
+[0508105615]     mla_kappa_05:-0.002          po:0.371          pe:0.372  tot_simu_data:4000
+[0508105615]        mla_kappa:+0.003          po:0.371          pe:0.369  tot_simu_data:4000 repeat:5

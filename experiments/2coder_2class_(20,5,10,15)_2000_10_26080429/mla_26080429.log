@@ -1,0 +1,32 @@
+[0426080429]  ****************************** input & proc  ******************************
+[0426080429]  2coder_2class input: Namespace(nn_num=5, ny_num=15, repeat=10, total_simu_data=2000, yn_num=10, yy_num=20)
+[0426080429]               yy:20
+[0426080429]               nn:5
+[0426080429]               yn:10
+[0426080429]               ny:15
+[0426080429]  total_simu_data:2000
+[0426080429]     repeat_times:10
+[0426080429]                k:2
+[0426080429]  gen_anno_data_4_cohen: tot_num:50   num_yy:20    num_nn:5    num_yn:10  num_ny:15
+[0426080429]  ct=Counter({'0_0': 20, '1_0': 15, '0_1': 10, '1_1': 5})
+[0426080429]  contingency table
+ [[20 10]
+ [15  5]]
+[0426080429]  po:    0.5
+[0426080429]  pe:    0.54
+[0426080429]  kappa  -0.08695652173913052
+[0426080429]  cohen_kappa_score  -0.08695652173913038  -0.08695652173913038
+[0426080429]  ******************************    result     ******************************
+[0426080429]      cohen kappa:-0.087          po:0.500          pe:0.540  {'y_y': 20, 'n_n': 5, 'y_n': 10, 'n_y': 15}
+[0426080429]         kf_alpha:-0.088    1-do_avg:0.500    1-de_avg:0.540  {'y_y': 20, 'n_n': 5, 'y_n': 10, 'n_y': 15}
+[0426080430]     mla_kappa_01:-0.080          po:0.500          pe:0.537  tot_simu_data:2000
+[0426080430]     mla_kappa_02:-0.073          po:0.500          pe:0.534  tot_simu_data:2000
+[0426080430]     mla_kappa_03:-0.092          po:0.500          pe:0.542  tot_simu_data:2000
+[0426080430]     mla_kappa_04:-0.106          po:0.500          pe:0.548  tot_simu_data:2000
+[0426080431]     mla_kappa_05:-0.129          po:0.500          pe:0.557  tot_simu_data:2000
+[0426080431]     mla_kappa_06:-0.059          po:0.500          pe:0.528  tot_simu_data:2000
+[0426080431]     mla_kappa_07:-0.068          po:0.500          pe:0.532  tot_simu_data:2000
+[0426080432]     mla_kappa_08:-0.109          po:0.500          pe:0.549  tot_simu_data:2000
+[0426080432]     mla_kappa_09:-0.071          po:0.500          pe:0.533  tot_simu_data:2000
+[0426080432]     mla_kappa_10:-0.106          po:0.500          pe:0.548  tot_simu_data:2000
+[0426080432]        mla_kappa:-0.089          po:0.500          pe:0.541  tot_simu_data:2000 repeat:10
